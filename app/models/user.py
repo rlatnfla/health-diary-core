@@ -9,6 +9,7 @@ class User(EntityBase):
     id = Column(Integer, primary_key=True, index=True)
 
     # 사용자 인적사항 정보
+    name = Column(String, nullable=False)
     gender = Column(String, nullable=False)
     birth_date = Column(DateTime, nullable=False)
 
