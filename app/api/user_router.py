@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
-
+from app.exceptions.base_exception import ResourceNotFoundException
 from app.core.db_connection import get_db_session
 from app.schemas.user import UserCreate, UserRead
 from app.crud import user as user_crud 
@@ -24,5 +24,5 @@ def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db_sess
 def read_user(user_id: int, db: Session = Depends(get_db_session)):
     user = user_crud.get_user_by_id(db, user_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="user not found")
+        raise ResourceNotFoundException("사용자")
     return user
