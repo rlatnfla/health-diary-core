@@ -34,3 +34,17 @@ class HttpNlpClient(NlpClientBase):
 
         except (httpx.HTTPError, httpx.TimeoutException):
             raise NlpCommunicationException()
+
+    async def send_weekly_report_request(self, request_data) -> dict:
+        payload = request_data.model_dump(mode="json")
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.url}/v1/api/analyze/weekly", json=payload, timeout=15.0
+                )
+                response.raise_for_status()
+
+                return response.json()
+        except (httpx.HTTPError, httpx.TimeoutException):
+            raise NlpCommunicationException()

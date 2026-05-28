@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from app.schemas.nlp import NlpAnalysisRequestSchema
+from app.schemas.weekly_report import WeeklyNlpPayload
 
 
 class NlpClientBase(ABC):
@@ -17,5 +18,12 @@ class NlpClientBase(ABC):
 
         :param request_data: 통신 규격 클래스 (NlpAnalysisRequestSchema)
         :return: None (비동기 지향 구조)
+        """
+        pass
+
+    @abstractmethod
+    async def send_weekly_report_request(self, request_data: WeeklyNlpPayload) -> dict:
+        """
+        주간 누적 데이터 및 유저 건강 스냅샷을 가지고 NLP 시스템에 레포트 작성 요청
         """
         pass
