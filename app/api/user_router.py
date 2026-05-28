@@ -1,28 +1,39 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from typing import List
-from app.exceptions.base_exception import ResourceNotFoundException
+
 from app.core.db_connection import get_db_session
-from app.schemas.user import UserCreate, UserRead
-from app.crud import user as user_crud 
+from app.schemas.user import UserCreate, UserHealthProfileUpdate, UserRead
+from app.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-# 1. 사용자 생성
+
+def _get_user_service(db: Session = Depends(get_db_session)) -> UserService:
+    return UserService(db)
+
+
+# 사용자 생성
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def create_user(user_in: UserCreate, db: Session = Depends(get_db_session)):
-    return user_crud.create_user(db, user_in)
+async def create_user(
+    user_in: UserCreate, user_service: UserService = Depends(_get_user_service)
+):
+    return await user_service.create_user(user_in)
 
-# 2. 사용자 목록 조회 API
-@router.get("/", response_model=List[UserRead])
-def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db_session)):
-    users = user_crud.get_users(db, skip, limit)
-    return users
 
-# 3. 사용자 단건 조회 API
-@router.get("/{user_id}", response_model=UserRead)
-def read_user(user_id: int, db: Session = Depends(get_db_session)):
-    user = user_crud.get_user_by_id(db, user_id)
-    if user is None:
-        raise ResourceNotFoundException("사용자")
-    return user
+# 사용자 단건 조회 API
+@router.get("/{user_id}", response_model=UserRead, status_code=status.HTTP_200_OK)
+async def read_user(
+    user_id: int, user_service: UserService = Depends(_get_user_service)
+):
+    return await user_service.read_user(user_id)
+
+
+@router.put("/{user_id}/health-profile", status_code=status.HTTP_200_OK)
+async def update_user_health_profile(
+    user_id: int,
+    profile_in: UserHealthProfileUpdate,
+    user_service: UserService = Depends(_get_user_service),
+):
+    await user_service.modify_user_health_profile(user_id, profile_in)
+
+    return {"message": "건강 프로필 반영 성공"}
