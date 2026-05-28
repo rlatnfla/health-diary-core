@@ -1,11 +1,12 @@
+import importlib
+import pkgutil
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
-from app.models.user import EntityBase
+import app.models as models_package
+from app.core.db_connection import EntityBase
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -20,6 +21,9 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+for _, module_name, _ in pkgutil.iter_modules(models_package.__path__):
+    importlib.import_module(f"app.models.{module_name}")
+
 target_metadata = EntityBase.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -66,9 +70,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
